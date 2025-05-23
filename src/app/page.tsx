@@ -94,13 +94,9 @@ export default function Home() {
 						</Link>
 					</div>
 
-					{/* Правая часть: Глобус */}
-					<div className="md:col-span-2 relative w-full h-full min-h-[400px] md:min-h-[600px] xl:min-h-[800px] 2xl:min-h-[1000px]">
-						<div className="absolute inset-0 flex items-center justify-center">
-							<div className="w-full h-full">
-								<DynamicGlobe />
-							</div>
-						</div>
+					{/* Правая часть: Глобус - теперь занимает 2 колонки из 5 */}
+					<div className="md:col-span-2 relative w-full h-[600px] max-h-[600px] md:max-h-[600px]">
+						<DynamicGlobe />
 					</div>
 				</div>
 
