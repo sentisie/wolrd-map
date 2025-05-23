@@ -13,8 +13,6 @@ import * as d3 from "d3";
 import countriesData, { CountryYearData } from "@/lib/countries-data";
 import { FeatureCollection } from "geojson";
 import L from "leaflet";
-import { Transition } from "@headlessui/react";
-import { gsap } from "gsap";
 
 // Исправление иконок Leaflet
 import icon from "leaflet/dist/images/marker-icon.png";
@@ -89,7 +87,8 @@ const WorldMap: React.FC<WorldMapProps> = ({ onCountryClick }) => {
 
 	// Фиксим баг с иконками Leaflet в Next.js
 	useEffect(() => {
-		delete (L.Icon.Default.prototype as any)._getIconUrl;
+		delete (L.Icon.Default.prototype as unknown as { _getIconUrl?: unknown })
+			._getIconUrl;
 		L.Icon.Default.mergeOptions({
 			iconUrl: icon.src,
 			shadowUrl: iconShadow.src,
@@ -109,10 +108,10 @@ const WorldMap: React.FC<WorldMapProps> = ({ onCountryClick }) => {
 	}, []);
 
 	// Получение цвета для страны на основе данных
-	const getCountryColor = (feature: any): string => {
+	const getCountryColor = (feature: GeoJSON.Feature): string => {
 		if (!feature || !feature.properties) return "#CCCCCC"; // Default neutral color
 
-		const countryName = feature.properties.name;
+		const countryName = feature.properties?.name ?? "";
 		const countryCode = feature.id || nameToCountryCode[countryName];
 
 		if (
@@ -142,9 +141,12 @@ const WorldMap: React.FC<WorldMapProps> = ({ onCountryClick }) => {
 	};
 
 	// Стиль для стран
-	const countryStyle = (feature: any) => {
+	const countryStyle = (feature?: GeoJSON.Feature): L.PathOptions => {
+		if (!feature) return {};
 		const isHighlighted =
-			highlightedCountry === (feature.id || feature.properties.name);
+			highlightedCountry ===
+			(feature.id ||
+				(feature.properties ? feature.properties.name : undefined));
 		return {
 			fillColor: getCountryColor(feature),
 			weight: isHighlighted ? 2.5 : 1,
@@ -155,9 +157,10 @@ const WorldMap: React.FC<WorldMapProps> = ({ onCountryClick }) => {
 	};
 
 	// Обработка клика по стране
-	const handleCountryClick = (e: any) => {
-		const feature = e.target.feature;
-		const countryName = feature.properties.name;
+	const handleCountryClick = (e: L.LeafletMouseEvent) => {
+		const feature = (e.target as L.Layer & { feature: GeoJSON.Feature })
+			.feature;
+		const countryName = feature.properties?.name ?? "";
 		const countryCode = feature.id || nameToCountryCode[countryName];
 
 		if (
@@ -167,16 +170,16 @@ const WorldMap: React.FC<WorldMapProps> = ({ onCountryClick }) => {
 		) {
 			const countryData = countriesData[countryCode][currentYear];
 
-			// Центрируем карту на выбранной стране
-			if (mapRef.current) {
-				mapRef.current.fitBounds(e.target.getBounds(), {
-					padding: [50, 50],
-					duration: 0.5,
-				});
-			}
+			// Убираем код приближения карты
+			// if (mapRef.current) {
+			//     mapRef.current.fitBounds((e.target as L.Polygon).getBounds(), {
+			//         padding: [50, 50],
+			//         duration: 0.5,
+			//     });
+			// }
 
 			// Обновляем выделенную страну
-			setHighlightedCountry(countryCode);
+			setHighlightedCountry(countryCode ? String(countryCode) : null);
 
 			// Вызываем коллбэк
 			if (onCountryClick) {
@@ -186,7 +189,7 @@ const WorldMap: React.FC<WorldMapProps> = ({ onCountryClick }) => {
 	};
 
 	// Обработка наведения на страну
-	const handleCountryMouseOver = (e: any) => {
+	const handleCountryMouseOver = (e: L.LeafletMouseEvent) => {
 		const layer = e.target;
 		layer.setStyle({
 			weight: 2,
@@ -199,14 +202,14 @@ const WorldMap: React.FC<WorldMapProps> = ({ onCountryClick }) => {
 	};
 
 	// Обработка ухода мыши со страны
-	const handleCountryMouseOut = (e: any) => {
+	const handleCountryMouseOut = (e: L.LeafletMouseEvent) => {
 		// Reset to the default style, which depends on currentCategory and highlightedCountry
 		e.target.setStyle(countryStyle(e.target.feature));
 	};
 
 	// Добавление обработчиков событий для каждой страны
-	const onEachCountry = (feature: any, layer: any) => {
-		const countryName = feature.properties.name;
+	const onEachCountry = (feature: GeoJSON.Feature, layer: L.Layer) => {
+		const countryName = (feature.properties as { name: string }).name;
 		const countryCode = feature.id || nameToCountryCode[countryName];
 		const countryDataForYear = countriesData[countryCode]?.[currentYear];
 
@@ -224,7 +227,7 @@ const WorldMap: React.FC<WorldMapProps> = ({ onCountryClick }) => {
 		} else {
 			tooltipContent += `Нет данных за ${currentYear} год`;
 		}
-		layer.bindTooltip(tooltipContent, { sticky: true });
+		(layer as L.Path).bindTooltip(tooltipContent, { sticky: true });
 
 		layer.on({
 			mouseover: handleCountryMouseOver,
@@ -426,9 +429,7 @@ const WorldMap: React.FC<WorldMapProps> = ({ onCountryClick }) => {
 						style={{ height: "100%", width: "100%" }}
 						minZoom={2}
 						maxZoom={8} // Allow more zoom
-						whenCreated={(map) => {
-							mapRef.current = map;
-						}}
+						ref={mapRef}
 					>
 						<TileLayer
 							url="https://{s}.basemaps.cartocdn.com/light_nolabels/{z}/{x}/{y}{r}.png" // No labels for a cleaner look

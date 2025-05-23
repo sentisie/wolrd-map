@@ -68,7 +68,8 @@ const CountryModal: React.FC<CountryModalProps> = ({
 			{isOpen && (
 				<div className="fixed inset-0 z-[9999] flex items-center justify-center overflow-hidden">
 					<motion.div
-						className="fixed inset-0 bg-black bg-opacity-70 backdrop-blur-sm"
+						className="fixed inset-0 bg-opacity-60 backdrop-blur-[2px]"
+						style={{ backgroundColor: "rgba(0, 0, 0, 0.5)" }}
 						initial={{ opacity: 0 }}
 						animate={{ opacity: 1 }}
 						exit={{ opacity: 0 }}

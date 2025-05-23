@@ -61,7 +61,7 @@ export default function AboutPage() {
 
 					<div className="prose max-w-none text-gray-700">
 						<p className="text-lg mb-6">
-							Проект "Исследователь Мира" был создан с целью предоставить
+							Проект &ldquo;MapXplore&rdquo; был создан с целью предоставить
 							пользователям интерактивный способ изучения стран мира и
 							интересных фактов о них.
 						</p>
