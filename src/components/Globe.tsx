@@ -4,7 +4,7 @@ import React, { useRef, useState, useMemo } from "react";
 import { Canvas, useFrame } from "@react-three/fiber";
 import { Stars } from "@react-three/drei";
 import * as THREE from "three";
-// import { gsap } from "gsap";
+// import { gsap } from "gsap;
 
 /* Закомментировано, так как маркеры больше не используются
 interface HotspotProps {
@@ -191,8 +191,8 @@ function Earth() {
 // Обертка для создания сцены и настройки освещения
 function GlobeWrapper() {
 	return (
-		<div className="w-full h-full flex justify-center items-center">
-			<div className="w-full h-full">
+		<div className="w-full h-full relative">
+			<div className="absolute inset-0">
 				<Canvas
 					camera={{ position: [0, 0, 200], fov: 75 }}
 					gl={{
@@ -202,6 +202,7 @@ function GlobeWrapper() {
 						powerPreference: "high-performance",
 					}}
 					dpr={[1, 1.5]}
+					style={{ width: "100%", height: "100%" }}
 				>
 					{/* Освещение */}
 					<ambientLight intensity={0.7} />
